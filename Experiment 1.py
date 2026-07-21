@@ -1,74 +1,120 @@
 import time
 import random
-import matplotlib.pyplot as plt
+import sys
 
-# Linear Search Function
-def linear_search(arr, key):
-    for i in range(len(arr)):
-        if arr[i] == key:
-            return i
-    return -1
 
-# Number of test cases
-count = int(input("Enter how many n values you want to test: "))
+def interpolation_search(arr, target):
+    """
+    Interpolation Search Algorithm
 
-n_values = []
-times = []
+    Time Complexity:
+        Average: O(log log n)
+        Worst: O(n)
 
-# Input n values
-for i in range(count):
-    n = int(input(f"\nEnter n value {i + 1}: "))
-    n_values.append(n)
+    Space Complexity:
+        O(1)
+    """
 
-print("\n================ LINEAR SEARCH EXECUTION ================\n")
+    low, high = 0, len(arr) - 1
+    comparisons = 0
 
-# Table Heading
-print("{:<10} {:<20} {:<20}".format("N", "Search Element", "Time Taken (ms)"))
-print("-" * 55)
+    while low <= high and arr[low] <= target <= arr[high]:
+        comparisons += 1
 
-# Process each n value
-for n in n_values:
+        if low == high:
+            if arr[low] == target:
+                return low, comparisons
+            return -1, comparisons
 
-    # Generate random array
-    arr = [random.randint(1, 100) for _ in range(n)]
+        # Prevent division by zero
+        if arr[high] == arr[low]:
+            break
 
-    print(f"\nGenerated Array for n = {n}:")
-    print(arr)
+        # Interpolation formula
+        pos = low + int(
+            ((target - arr[low]) * (high - low))
+            / (arr[high] - arr[low])
+        )
 
-    # Get search element from user
-    key = int(input(f"\nEnter the element to search in array of size {n}: "))
+        if arr[pos] == target:
+            return pos, comparisons
+        elif arr[pos] < target:
+            low = pos + 1
+        else:
+            high = pos - 1
 
-    # Start time
-    start_time = time.perf_counter()
+    return -1, comparisons
 
-    # Perform linear search
-    position = linear_search(arr, key)
 
-    # End time
-    end_time = time.perf_counter()
+def binary_search(arr, target):
+    """
+    Binary Search Algorithm
 
-    # Calculate time in milliseconds
-    time_taken = (end_time - start_time) * 1000
+    Time Complexity:
+        O(log n)
 
-    times.append(time_taken)
+    Space Complexity:
+        O(1)
+    """
 
-    # Display search result
-    if position != -1:
-        print(f"Element {key} found at position {position}")
-    else:
-        print(f"Element {key} not found")
+    low, high = 0, len(arr) - 1
+    comparisons = 0
 
-    # Display table row
-    print("{:<10} {:<20} {:<20.6f}".format(n, key, time_taken))
+    while low <= high:
+        comparisons += 1
+        mid = (low + high) // 2
 
-# Plot Graph
-plt.figure(figsize=(8, 5))
+        if arr[mid] == target:
+            return mid, comparisons
+        elif arr[mid] < target:
+            low = mid + 1
+        else:
+            high = mid - 1
 
-plt.plot(n_values, times, marker='o')
+    return -1, comparisons
 
-plt.title("Linear Search Time Complexity")
-plt.xlabel("Number of Elements (n)")
-plt.ylabel("Time Taken (milliseconds)")
-plt.grid(True)
 
-plt.show()
+def performance_analysis():
+    sizes = [1000, 5000, 10000, 50000, 100000]
+
+    print(
+        f"{'Size':>10} {'IS Time(ms)':>14} {'BS Time(ms)':>14} "
+        f"{'IS Comparisons':>16} {'BS Comparisons':>16}"
+    )
+    print("-" * 75)
+
+    for size in sizes:
+        arr = sorted(random.sample(range(size * 10), size))
+        target = arr[random.randint(0, size - 1)]
+
+        # Interpolation Search timing
+        start = time.perf_counter()
+        for _ in range(100):
+            idx_is, comp_is = interpolation_search(arr, target)
+        is_time = (time.perf_counter() - start) / 100 * 1000
+
+        # Binary Search timing
+        start = time.perf_counter()
+        for _ in range(100):
+            idx_bs, comp_bs = binary_search(arr, target)
+        bs_time = (time.perf_counter() - start) / 100 * 1000
+
+        print(
+            f"{size:>10} {is_time:>14.4f} {bs_time:>14.4f} "
+            f"{comp_is:>16} {comp_bs:>16}"
+        )
+
+
+# ---------------- Main Program ----------------
+
+arr = [2, 5, 10, 15, 23, 35, 48, 60, 75, 90, 105, 120]
+target = 35
+
+idx, comps = interpolation_search(arr, target)
+
+print(f"Array: {arr}")
+print(f"Searching for: {target}")
+print(f"Found at index: {idx}, Comparisons: {comps}")
+print()
+
+performance_analysis()
